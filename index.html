@@ -101,6 +101,10 @@
             <i data-feather="file-text" class="text-navy-400 group-hover:text-primary-400 mr-3 flex-shrink-0 h-5 w-5"></i>
             Data Entry (MLEF)
           </a>
+          <a href="#" data-view="scanning" class="nav-link group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-navy-800 hover:text-white transition-colors">
+            <i data-feather="maximize" class="text-navy-400 group-hover:text-primary-400 mr-3 flex-shrink-0 h-5 w-5"></i>
+            AI Scanning
+          </a>
           <a href="#" data-view="court" class="nav-link group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-navy-800 hover:text-white transition-colors">
             <i data-feather="briefcase" class="text-navy-400 group-hover:text-primary-400 mr-3 flex-shrink-0 h-5 w-5"></i>
             Court Tracking
@@ -837,7 +841,193 @@
             </div>
           </section>
 
-          <!-- 4. COURT TRACKING VIEW -->
+          <!-- 4. AI SCANNING VIEW -->
+          <section id="view-scanning" class="view-section h-full">
+            <div class="h-full flex flex-col space-y-4">
+              <!-- TOP PANEL: INITIAL UPLOAD ACTIONS -->
+              <div id="scan-top-panel" class="bg-white shadow-sm rounded-lg border border-slate-200 p-6 flex-shrink-0">
+                <h3 class="text-lg font-medium text-navy-900 mb-4">Document Ingestion Workspace</h3>
+                
+                <!-- Form Type Selector -->
+                <div class="mb-6">
+                  <label class="block text-sm font-medium text-slate-700 mb-2">1. Select Document Type</label>
+                  <select id="scan-form-type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
+                    <option value="mlef">Clinical Case (MLEF)</option>
+                    <option value="pmr">Autopsy Case (PMR)</option>
+                    <option value="court">Court Receipt</option>
+                  </select>
+                </div>
+
+                <!-- Dropzone -->
+                <label class="block text-sm font-medium text-slate-700 mb-2">2. Upload Scanned Document</label>
+                <div id="scan-dropzone" class="border-2 border-dashed border-slate-300 rounded-lg p-10 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group">
+                  <i data-feather="upload-cloud" class="h-12 w-12 text-slate-400 group-hover:text-primary-500 transition-colors mb-3"></i>
+                  <p class="text-slate-700 font-medium text-lg text-center">Drag & Drop Scanned Form here or Click to Browse</p>
+                  <p class="text-slate-500 text-sm mt-2 text-center">Supports high-resolution JPEG, PNG up to 50MB</p>
+                  <input type="file" id="scan-file-input" class="hidden" accept="image/jpeg, image/png, image/jpg">
+                </div>
+
+                <!-- Processing Indicator (Hidden initially) -->
+                <div id="scan-processing" class="hidden flex flex-col items-center justify-center p-8">
+                  <i data-feather="loader" class="h-10 w-10 text-primary-600 animate-spin mb-4"></i>
+                  <div class="w-full max-w-md bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden">
+                    <div class="bg-primary-600 h-full rounded-full transition-all duration-300 ease-out" style="width: 0%" id="scan-progress-bar"></div>
+                  </div>
+                  <p id="scan-progress-text" class="text-slate-600 font-medium">AI Core is analyzing document layout grid...</p>
+                </div>
+              </div>
+
+              <!-- MAIN BODY: THE SPLIT-SCREEN WORKSPACE -->
+              <div id="scan-workspace" class="hidden flex-1 overflow-hidden flex gap-4 min-h-0">
+                
+                <!-- LEFT COLUMN: THE ORIGINAL SCAN VIEWPORT -->
+                <div class="w-1/2 bg-white shadow-sm rounded-lg border border-slate-200 flex flex-col overflow-hidden relative">
+                  <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center z-10">
+                    <h3 class="text-sm font-semibold text-slate-800">Source Document Viewer</h3>
+                    <!-- Floating Toolbar -->
+                    <div class="flex space-x-1 bg-white shadow-sm border border-slate-200 rounded-md p-1">
+                      <button type="button" id="scan-zoom-in" class="p-1 text-slate-500 hover:text-navy-900 hover:bg-slate-100 rounded transition-colors" title="Zoom In"><i data-feather="zoom-in" class="h-4 w-4"></i></button>
+                      <button type="button" id="scan-zoom-out" class="p-1 text-slate-500 hover:text-navy-900 hover:bg-slate-100 rounded transition-colors" title="Zoom Out"><i data-feather="zoom-out" class="h-4 w-4"></i></button>
+                      <button type="button" id="scan-rotate" class="p-1 text-slate-500 hover:text-navy-900 hover:bg-slate-100 rounded transition-colors" title="Rotate Document"><i data-feather="rotate-cw" class="h-4 w-4"></i></button>
+                      <button type="button" id="scan-reset-view" class="p-1 text-slate-500 hover:text-navy-900 hover:bg-slate-100 rounded transition-colors" title="Reset View"><i data-feather="maximize" class="h-4 w-4"></i></button>
+                    </div>
+                  </div>
+                  <div class="flex-1 bg-slate-200 overflow-hidden relative flex items-center justify-center p-4">
+                    <!-- Image Frame -->
+                    <div id="scan-image-container" class="transition-transform duration-200 ease-in-out transform shadow-lg max-w-full max-h-full">
+                      <img id="scan-document-preview" src="/mock_mlef_form_1779364013211.png" alt="Scanned Document" class="max-w-full max-h-full object-contain bg-white rounded">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- RIGHT COLUMN: THE AI EXTRACTED FIELD VERIFICATION PANEL -->
+                <div class="w-1/2 bg-white shadow-sm rounded-lg border border-slate-200 flex flex-col overflow-hidden">
+                  <div class="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                    <h3 class="text-sm font-semibold text-slate-800">AI Data Parsing Verification</h3>
+                  </div>
+                  <div class="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+                    
+                    <!-- Section 1: Police Reference Details -->
+                    <div class="border border-slate-200 rounded-md p-4">
+                      <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Section 1: Police Reference Details</h4>
+                      <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                          <label class="block text-sm font-medium text-slate-700">Police Station</label>
+                          <input type="text" value="Wellawatte Police Station" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">Date of Issue</label>
+                          <input type="date" value="2023-10-25" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">Officer Badge/Reg No.</label>
+                          <input type="text" value="PC-45892" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div class="sm:col-span-2 border border-amber-300 bg-amber-50 rounded-md p-3 relative">
+                          <div class="flex items-center justify-between mb-1">
+                            <label class="block text-sm font-medium text-slate-700">Reference Serial No.</label>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                              <i data-feather="alert-triangle" class="mr-1 h-3 w-3"></i> Low Confidence - Please Verify
+                            </span>
+                          </div>
+                          <input type="text" value="SR-98?42" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-amber-300 bg-white rounded-md">
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Section 2: Patient Identity Markers -->
+                    <div class="border border-slate-200 rounded-md p-4">
+                      <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Section 2: Patient Identity Markers</h4>
+                      <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                          <label class="block text-sm font-medium text-slate-700">Full Name</label>
+                          <input type="text" value="Saman Kumara" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div class="sm:col-span-2">
+                          <label class="block text-sm font-medium text-slate-700">Address</label>
+                          <textarea rows="2" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">12/4, Galle Road, Colombo 06</textarea>
+                        </div>
+                        <div class="sm:col-span-2 border border-amber-300 bg-amber-50 rounded-md p-3 relative">
+                          <div class="flex items-center justify-between mb-1">
+                            <label class="block text-sm font-medium text-slate-700">NIC/Passport</label>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                              <i data-feather="alert-triangle" class="mr-1 h-3 w-3"></i> Low Confidence - Please Verify
+                            </span>
+                          </div>
+                          <input type="text" value="851?34567V" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-amber-300 bg-white rounded-md">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">Age</label>
+                          <input type="number" value="38" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">Gender</label>
+                          <div class="mt-2 flex items-center space-x-4">
+                            <label class="inline-flex items-center">
+                              <input type="radio" name="scan_gender" value="M" checked class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300">
+                              <span class="ml-2 text-sm text-slate-700">M</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                              <input type="radio" name="scan_gender" value="F" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300">
+                              <span class="ml-2 text-sm text-slate-700">F</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Section 3: Clinical Admission Context -->
+                    <div class="border border-slate-200 rounded-md p-4">
+                      <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Section 3: Clinical Admission Context</h4>
+                      <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                          <label class="block text-sm font-medium text-slate-700">Hospital Name</label>
+                          <input type="text" value="National Hospital Sri Lanka" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">Ward</label>
+                          <input type="text" value="Ward 15" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">B.H.T. Number</label>
+                          <input type="text" value="BHT-4421" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">Admission Date</label>
+                          <input type="date" value="2023-10-25" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">Admission Time</label>
+                          <input type="time" value="14:30" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+              <!-- BOTTOM DASHBOARD BAR: RECONCILIATION ACTIONS -->
+              <div id="scan-footer" class="hidden bg-white shadow-sm rounded-lg border border-slate-200 p-4 flex-shrink-0 flex justify-between items-center">
+                <button type="button" id="scan-discard-btn" class="inline-flex items-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                  <i data-feather="trash-2" class="mr-2 h-4 w-4"></i>
+                  Discard Scan & Re-upload
+                </button>
+                <div class="flex space-x-3">
+                  <button type="button" class="inline-flex items-center px-4 py-2 border border-slate-300 shadow-sm text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <i data-feather="refresh-cw" class="mr-2 h-4 w-4"></i>
+                    Run Re-Scan
+                  </button>
+                  <button type="button" class="inline-flex items-center px-6 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+                    <i data-feather="check-circle" class="mr-2 h-4 w-4"></i>
+                    Validate & Save to Digital Repository
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5. COURT TRACKING VIEW -->
           <section id="view-court" class="view-section">
             <div class="max-w-3xl mx-auto bg-white shadow-sm rounded-lg border border-slate-200 p-8">
               <div class="border-b border-slate-200 pb-5 mb-6">
