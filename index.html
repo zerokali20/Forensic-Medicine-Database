@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FMDBS - Forensic Medicine Department</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Heroicons via CDN -->
+    <script src="https://unpkg.com/feather-icons"></script>
+  </head>
+  <body class="flex h-screen overflow-hidden bg-slate-50 text-slate-800 font-sans">
+    
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-navy-900 bg-opacity-95 backdrop-blur-sm transition-opacity duration-300">
+      <div class="w-full max-w-md bg-white rounded-xl shadow-2xl p-8 border border-slate-200">
+        <div class="text-center mb-8">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-navy-100 text-navy-800 mb-4">
+            <i data-feather="shield" class="w-8 h-8"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-navy-900">FMDBS Login</h1>
+          <p class="text-sm text-slate-500 mt-2">Forensic Medicine Department Database System</p>
+        </div>
+        <form id="loginForm" class="space-y-6">
+          <div>
+            <label for="role" class="block text-sm font-medium text-slate-700">Role</label>
+            <select id="role" name="role" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
+              <option>Doctor</option>
+              <option>Clerk</option>
+              <option>Lab Tech</option>
+              <option>Police Officer</option>
+              <option>Super Admin</option>
+            </select>
+          </div>
+          <div>
+            <label for="username" class="block text-sm font-medium text-slate-700">Username</label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-feather="user" class="h-5 w-5 text-slate-400"></i>
+              </div>
+              <input type="text" name="username" id="username" class="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-md" placeholder="Enter your username">
+            </div>
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-feather="lock" class="h-5 w-5 text-slate-400"></i>
+              </div>
+              <input type="password" name="password" id="password" class="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-md" placeholder="••••••••">
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded">
+              <label for="remember-me" class="ml-2 block text-sm text-slate-900"> Remember me </label>
+            </div>
+            <div class="text-sm">
+              <a href="#" class="font-medium text-primary-600 hover:text-primary-500"> Forgot password? </a>
+            </div>
+          </div>
+          <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
+            Secure Login
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Application UI (Hidden behind login overlay initially) -->
+    <div id="appContainer" class="flex w-full h-full opacity-0 pointer-events-none transition-opacity duration-300">
+      
+      <!-- Sidebar -->
+      <aside class="w-64 flex-shrink-0 bg-navy-900 text-slate-300 flex flex-col border-r border-navy-800 transition-all duration-300 z-20">
+        <div class="h-16 flex items-center px-6 bg-navy-950 border-b border-navy-800">
+          <i data-feather="activity" class="w-6 h-6 text-primary-400 mr-3"></i>
+          <span class="text-lg font-bold text-white tracking-wide">FMDBS</span>
+        </div>
+        
+        <div class="px-6 py-4 border-b border-navy-800">
+          <div class="flex items-center">
+            <img class="h-10 w-10 rounded-full border-2 border-primary-500 object-cover" src="https://ui-avatars.com/api/?name=Dr+Smith&background=0d9488&color=fff" alt="User avatar">
+            <div class="ml-3">
+              <p class="text-sm font-medium text-white">Dr. Smith</p>
+              <p class="text-xs text-navy-300">Chief Medical Officer</p>
+            </div>
+          </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <a href="#" data-view="dashboard" class="nav-link active group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-navy-800 hover:text-white transition-colors">
+            <i data-feather="grid" class="text-navy-400 group-hover:text-primary-400 mr-3 flex-shrink-0 h-5 w-5"></i>
+            Dashboard
+          </a>
+          <a href="#" data-view="search" class="nav-link group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-navy-800 hover:text-white transition-colors">
+            <i data-feather="search" class="text-navy-400 group-hover:text-primary-400 mr-3 flex-shrink-0 h-5 w-5"></i>
+            Case Search
+          </a>
+          <a href="#" data-view="entry" class="nav-link group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-navy-800 hover:text-white transition-colors">
+            <i data-feather="file-text" class="text-navy-400 group-hover:text-primary-400 mr-3 flex-shrink-0 h-5 w-5"></i>
+            Data Entry (MLEF)
+          </a>
+          <a href="#" data-view="court" class="nav-link group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-navy-800 hover:text-white transition-colors">
+            <i data-feather="briefcase" class="text-navy-400 group-hover:text-primary-400 mr-3 flex-shrink-0 h-5 w-5"></i>
+            Court Tracking
+          </a>
+          <a href="#" data-view="dispatched" class="nav-link group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-navy-800 hover:text-white transition-colors">
+            <i data-feather="archive" class="text-navy-400 group-hover:text-primary-400 mr-3 flex-shrink-0 h-5 w-5"></i>
+            Dispatched Reports
+          </a>
+        </nav>
+
+        <div class="p-4 border-t border-navy-800">
+          <button id="logoutBtn" class="flex items-center w-full px-3 py-2 text-sm font-medium text-navy-300 rounded-md hover:bg-red-900/30 hover:text-red-400 transition-colors">
+            <i data-feather="log-out" class="mr-3 h-5 w-5"></i>
+            Sign Out
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
+        
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 flex-shrink-0 z-10 shadow-sm">
+          <h2 id="pageTitle" class="text-xl font-semibold text-navy-900">Dashboard</h2>
+          <div class="flex items-center space-x-4">
+            <button class="text-slate-400 hover:text-slate-500 relative">
+              <span class="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+              <i data-feather="bell" class="h-6 w-6"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- View Sections Container -->
+        <div class="flex-1 overflow-auto p-8" id="viewsContainer">
+          
+          <!-- 1. DASHBOARD VIEW -->
+          <section id="view-dashboard" class="view-section active space-y-6">
+            <!-- Metric Cards -->
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-slate-200 hover:shadow-md transition-shadow">
+                <div class="p-5">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                      <i data-feather="folder" class="h-6 w-6 text-blue-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt class="text-sm font-medium text-slate-500 truncate">Active Cases</dt>
+                        <dd class="text-2xl font-semibold text-navy-900">142</dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-slate-200 hover:shadow-md transition-shadow">
+                <div class="p-5">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-amber-100 rounded-md p-3">
+                      <i data-feather="send" class="h-6 w-6 text-amber-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt class="text-sm font-medium text-slate-500 truncate">Pending Court Dispatches</dt>
+                        <dd class="text-2xl font-semibold text-navy-900">28</dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-slate-200 hover:shadow-md transition-shadow">
+                <div class="p-5">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-red-100 rounded-md p-3">
+                      <i data-feather="alert-circle" class="h-6 w-6 text-red-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt class="text-sm font-medium text-slate-500 truncate">Overdue Reports</dt>
+                        <dd class="text-2xl font-semibold text-red-600">7</dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-slate-200 hover:shadow-md transition-shadow">
+                <div class="p-5">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-emerald-100 rounded-md p-3">
+                      <i data-feather="calendar" class="h-6 w-6 text-emerald-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt class="text-sm font-medium text-slate-500 truncate">Upcoming Trials (7 Days)</dt>
+                        <dd class="text-2xl font-semibold text-navy-900">12</dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alerts & Feed -->
+            <div class="bg-white shadow-sm rounded-lg border border-slate-200">
+              <div class="px-4 py-5 border-b border-slate-200 sm:px-6 flex justify-between items-center">
+                <h3 class="text-lg leading-6 font-medium text-navy-900">Recent Notifications & Alerts</h3>
+                <button class="text-sm text-primary-600 hover:text-primary-700 font-medium">View All</button>
+              </div>
+              <ul class="divide-y divide-slate-200">
+                <li class="p-4 hover:bg-slate-50 transition-colors">
+                  <div class="flex space-x-3">
+                    <div class="flex-shrink-0">
+                      <span class="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center ring-8 ring-white">
+                        <i data-feather="alert-triangle" class="h-4 w-4 text-red-600"></i>
+                      </span>
+                    </div>
+                    <div class="flex-1 space-y-1">
+                      <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-medium">Overdue MLR for MLEF-4829</h3>
+                        <p class="text-sm text-slate-500">1h ago</p>
+                      </div>
+                      <p class="text-sm text-slate-500">Report submission is past the 48-hour deadline. Assigned to Dr. Perera.</p>
+                    </div>
+                  </div>
+                </li>
+                <li class="p-4 hover:bg-slate-50 transition-colors">
+                  <div class="flex space-x-3">
+                    <div class="flex-shrink-0">
+                      <span class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center ring-8 ring-white">
+                        <i data-feather="upload-cloud" class="h-4 w-4 text-blue-600"></i>
+                      </span>
+                    </div>
+                    <div class="flex-1 space-y-1">
+                      <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-medium">New Investigation Result Uploaded</h3>
+                        <p class="text-sm text-slate-500">3h ago</p>
+                      </div>
+                      <p class="text-sm text-slate-500">Lab Technician added blood toxicity results for PM-2023-112.</p>
+                    </div>
+                  </div>
+                </li>
+                <li class="p-4 hover:bg-slate-50 transition-colors">
+                  <div class="flex space-x-3">
+                    <div class="flex-shrink-0">
+                      <span class="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center ring-8 ring-white">
+                        <i data-feather="check-circle" class="h-4 w-4 text-emerald-600"></i>
+                      </span>
+                    </div>
+                    <div class="flex-1 space-y-1">
+                      <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-medium">Case PM-2023-098 Closed</h3>
+                        <p class="text-sm text-slate-500">Yesterday</p>
+                      </div>
+                      <p class="text-sm text-slate-500">Final report dispatched to High Court Colombo.</p>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            
+            <!-- Placeholder for Chart -->
+            <div class="bg-white shadow-sm rounded-lg border border-slate-200 p-6 flex flex-col items-center justify-center h-64">
+               <i data-feather="bar-chart-2" class="h-12 w-12 text-slate-300 mb-4"></i>
+               <p class="text-slate-500">Case Volume Trends Chart Placeholder</p>
+            </div>
+          </section>
+
+          <!-- 2. CASE SEARCH VIEW -->
+          <section id="view-search" class="view-section space-y-6">
+            <div class="flex justify-between items-center">
+              <p class="text-slate-600">Manage and search through all clinical and autopsy records.</p>
+              <button class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">
+                <i data-feather="plus" class="mr-2 h-4 w-4"></i>
+                Register New Case
+              </button>
+            </div>
+
+            <!-- Advanced Search Bar -->
+            <div class="bg-white p-5 shadow-sm rounded-lg border border-slate-200">
+              <form class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div class="sm:col-span-2">
+                  <label class="block text-sm font-medium text-slate-700">MLEF/PM Number</label>
+                  <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-sm font-medium text-slate-700">Patient Name</label>
+                  <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                </div>
+                <div class="sm:col-span-1">
+                  <label class="block text-sm font-medium text-slate-700">Case Type</label>
+                  <select class="mt-1 block w-full py-2 px-3 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <option>All</option>
+                    <option>Clinical</option>
+                    <option>Autopsy</option>
+                  </select>
+                </div>
+                <div class="sm:col-span-1 flex items-end">
+                  <button type="button" class="w-full inline-flex justify-center py-2 px-4 border border-slate-300 shadow-sm text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <i data-feather="filter" class="mr-2 h-4 w-4"></i> Filter
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Data Table -->
+            <div class="bg-white shadow-sm rounded-lg border border-slate-200 overflow-hidden">
+              <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Case Number</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Patient Name / NIC</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Assigned Doctor</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-slate-200">
+                  <tr class="hover:bg-slate-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-navy-900">MLEF-4829</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-slate-900">John Doe</div>
+                      <div class="text-sm text-slate-500">851234567V</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Clinical</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Dr. Smith</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-800">Draft</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <a href="#" class="text-primary-600 hover:text-primary-900">Edit</a>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-slate-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-navy-900">PM-2023-112</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-slate-900">Unknown Female</div>
+                      <div class="text-sm text-slate-500">N/A</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Autopsy</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Dr. Perera</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">Pending Lab Results</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <a href="#" class="text-primary-600 hover:text-primary-900">Edit</a>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-slate-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-navy-900">MLEF-4820</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-slate-900">Jane Smith</div>
+                      <div class="text-sm text-slate-500">902345678V</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Clinical</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Dr. Smith</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">Report Dispatched</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <a href="#" class="text-primary-600 hover:text-primary-900">View</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="bg-white px-4 py-3 border-t border-slate-200 sm:px-6 flex items-center justify-between">
+                <div class="text-sm text-slate-700">Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">24</span> results</div>
+                <div class="flex-1 flex justify-end space-x-2">
+                  <button class="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50">Previous</button>
+                  <button class="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50">Next</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. DATA ENTRY VIEW (MLEF FORM) -->
+          <section id="view-entry" class="view-section">
+            <div class="bg-white shadow-sm rounded-lg border border-slate-200">
+              <div class="border-b border-slate-200">
+                <nav class="-mb-px flex space-x-8 px-6 overflow-x-auto" aria-label="Tabs" id="mlefTabs">
+                  <button data-target="tab-mlef" class="tab-btn active whitespace-nowrap py-4 px-1 border-b-2 border-primary-500 font-medium text-sm text-primary-600">
+                    Clinical Case (MLEF)
+                  </button>
+                  <button data-target="tab-pmr" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700 hover:border-slate-300">
+                    Autopsy Case (PMR)
+                  </button>
+                  <button data-target="tab-court-receipt" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700 hover:border-slate-300">
+                    Court Receipt Logging
+                  </button>
+                </nav>
+              </div>
+
+              <div class="p-6">
+                <!-- Tab 1: Clinical Case (MLEF) -->
+                <div id="tab-mlef" class="tab-pane active space-y-6">
+                  
+                  <!-- PART A: TO BE FILLED BY POLICE OFFICER -->
+                  <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                      <h3 class="text-lg font-semibold text-slate-800">PART A: TO BE FILLED BY POLICE OFFICER</h3>
+                    </div>
+                    <div class="p-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                      
+                      <div class="sm:col-span-3">
+                        <label class="block text-sm font-medium text-slate-700">1. Police Station</label>
+                        <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                      </div>
+                      
+                      <div class="sm:col-span-3">
+                        <label class="block text-sm font-medium text-slate-700">2. Date of Issue</label>
+                        <input type="date" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                      </div>
+                      
+                      <div class="sm:col-span-6">
+                        <label class="block text-sm font-medium text-slate-700">3. Serial Reference No.</label>
+                        <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                      </div>
+
+                      <div class="sm:col-span-6">
+                        <label class="block text-sm font-medium text-slate-700">4. Full Name and Address of the Examinee</label>
+                        <textarea rows="3" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md"></textarea>
+                      </div>
+
+                      <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-slate-700">5. Date of Birth / DOB</label>
+                        <input type="date" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                      </div>
+                      
+                      <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-slate-700">6. Age</label>
+                        <input type="number" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                      </div>
+                      
+                      <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-slate-700">Gender</label>
+                        <div class="mt-2 flex items-center space-x-4">
+                          <label class="inline-flex items-center">
+                            <input type="radio" name="gender" value="M" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300">
+                            <span class="ml-2 text-sm text-slate-700">M</span>
+                          </label>
+                          <label class="inline-flex items-center">
+                            <input type="radio" name="gender" value="F" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300">
+                            <span class="ml-2 text-sm text-slate-700">F</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div class="sm:col-span-6">
+                        <label class="block text-sm font-medium text-slate-700">7. Reason for referring for examination</label>
+                        <textarea rows="3" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md"></textarea>
+                      </div>
+
+                      <div class="sm:col-span-6 border-t border-slate-200 mt-4 pt-4">
+                        <h4 class="text-md font-medium text-slate-800 mb-4">8. Police Officer Issuing details</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div>
+                            <label class="block text-sm font-medium text-slate-700">Rank</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-slate-700">Registration/Badge No.</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-slate-700">Officer Name</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                          <div class="sm:col-span-3 mt-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Digital Signature</label>
+                            <div class="border-2 border-dashed border-slate-300 rounded-md h-24 bg-slate-50 flex items-center justify-center text-slate-400 text-sm">
+                              [Signature Placeholder]
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- PART B: TO BE FILLED BY MEDICAL OFFICER -->
+                  <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                      <h3 class="text-lg font-semibold text-slate-800">PART B: TO BE FILLED BY MEDICAL OFFICER</h3>
+                    </div>
+                    <div class="p-6 space-y-6">
+                      
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700">9. Produced by (Name/ID of presenting officer)</label>
+                        <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                      </div>
+
+                      <div class="border border-slate-200 rounded-md p-4 bg-slate-50">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-4">10. Admission Box</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label class="block text-sm font-medium text-slate-700">Hospital Name</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-slate-700">Ward</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                          <div class="flex space-x-2">
+                            <div class="w-1/2">
+                              <label class="block text-sm font-medium text-slate-700">Admission Date</label>
+                              <input type="date" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                            </div>
+                            <div class="w-1/2">
+                              <label class="block text-sm font-medium text-slate-700">Admission Time</label>
+                              <input type="time" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                            </div>
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-slate-700">B.H.T. No.</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">11. Date and Time of Examination</label>
+                          <div class="flex space-x-2 mt-1">
+                            <input type="date" class="focus:ring-primary-500 focus:border-primary-500 block w-1/2 shadow-sm sm:text-sm border-slate-300 rounded-md">
+                            <input type="time" class="focus:ring-primary-500 focus:border-primary-500 block w-1/2 shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">Place of Examination</label>
+                          <input type="text" placeholder="e.g. Ward 15 / OPD" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">12. Date of discharge</label>
+                          <input type="date" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">13. Nature of the bodily harm</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Abrasion</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Contusion</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Laceration</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Cut</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Fracture</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Firearm inj.</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Burns</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Stab</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Bite</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Dislocation/Subluxation</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Explosive inj.</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">None</span></label>
+                        </div>
+                        <div class="space-y-3">
+                          <input type="text" placeholder="Others..." class="focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          <textarea rows="3" placeholder="Internal Injuries..." class="focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md"></textarea>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">14. Nature of Causative Weapon</label>
+                        <div class="flex flex-wrap gap-4 mb-2">
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Blunt</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Sharp</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Firearm</span></label>
+                          <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Explosive devices</span></label>
+                        </div>
+                        <input type="text" placeholder="Others..." class="focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                      </div>
+
+                      <div class="border border-amber-200 bg-amber-50 rounded-md p-4">
+                        <label class="block text-sm font-semibold text-slate-800 mb-3">15. Injury Classification Metrics</label>
+                        <div class="space-y-4">
+                          <div>
+                            <span class="text-sm text-slate-700 block mb-1">Category of Hurt:</span>
+                            <div class="flex space-x-4">
+                              <label class="inline-flex items-center"><input type="radio" name="category_hurt" class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-slate-300"><span class="ml-2 text-sm text-slate-700">Non-Grievous</span></label>
+                              <label class="inline-flex items-center"><input type="radio" name="category_hurt" class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-slate-300"><span class="ml-2 text-sm text-slate-700">Grievous</span></label>
+                            </div>
+                          </div>
+                          <div>
+                            <span class="text-sm text-slate-700 block mb-1">If Grievous, does it endanger life?</span>
+                            <div class="flex space-x-4">
+                              <label class="inline-flex items-center"><input type="radio" name="endanger_life" class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-slate-300"><span class="ml-2 text-sm text-slate-700">Yes</span></label>
+                              <label class="inline-flex items-center"><input type="radio" name="endanger_life" class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-slate-300"><span class="ml-2 text-sm text-slate-700">No</span></label>
+                            </div>
+                          </div>
+                          <div>
+                            <label class="inline-flex items-center"><input type="checkbox" class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">Fatal in ordinary course of nature</span></label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700 mb-2">16. Examination for consumption of alcohol</label>
+                          <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="alcohol_exam" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300"><span class="ml-2 text-sm text-slate-700">Breathing smelling</span></label>
+                            <label class="flex items-center"><input type="radio" name="alcohol_exam" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300"><span class="ml-2 text-sm text-slate-700">Under influence</span></label>
+                            <label class="flex items-center"><input type="radio" name="alcohol_exam" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300"><span class="ml-2 text-sm text-slate-700">Negative</span></label>
+                          </div>
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700 mb-2">17. Examination for consumption of drugs</label>
+                          <div class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="drug_exam" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300"><span class="ml-2 text-sm text-slate-700">Consumed</span></label>
+                            <label class="flex items-center"><input type="radio" name="drug_exam" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300"><span class="ml-2 text-sm text-slate-700">Under influence</span></label>
+                            <label class="flex items-center"><input type="radio" name="drug_exam" class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-slate-300"><span class="ml-2 text-sm text-slate-700">Negative</span></label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="border border-emerald-200 bg-emerald-50 rounded-md p-4">
+                        <label class="block text-sm font-semibold text-slate-800 mb-3">18. Examination of alleged sexual assault</label>
+                        <div class="space-y-4">
+                          <div>
+                            <span class="text-sm text-slate-700 block mb-1">Brief history given by examinee:</span>
+                            <textarea rows="3" class="focus:ring-emerald-500 focus:border-emerald-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md"></textarea>
+                          </div>
+                          <div>
+                            <span class="text-sm text-slate-700 block mb-2">Findings of examination relevant to given history:</span>
+                            <div class="space-y-2">
+                              <label class="flex items-center"><input type="checkbox" class="focus:ring-emerald-500 h-4 w-4 text-emerald-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">I. Signs of vaginal/hymen penetration present</span></label>
+                              <label class="flex items-center"><input type="checkbox" class="focus:ring-emerald-500 h-4 w-4 text-emerald-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">II. Signs of anal penetration present</span></label>
+                              <label class="flex items-center"><input type="checkbox" class="focus:ring-emerald-500 h-4 w-4 text-emerald-600 border-slate-300 rounded"><span class="ml-2 text-sm text-slate-700">III. Signs with Inter labial penetration present</span></label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="space-y-4">
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">19. Investigations (X-ray, CT, Toxicology orders)</label>
+                          <textarea rows="2" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md"></textarea>
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">20. Referrals</label>
+                          <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">21. Other opinions/Recommendation</label>
+                          <textarea rows="3" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md"></textarea>
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-slate-700">22. Remarks</label>
+                          <textarea rows="4" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md"></textarea>
+                        </div>
+                      </div>
+
+                      <div class="mt-6 border-t border-slate-200 pt-6">
+                        <div class="flex justify-between items-end mb-6">
+                          <div class="w-1/3">
+                            <label class="block text-xs font-semibold text-slate-500 uppercase">Ref No.</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md bg-slate-100" readonly placeholder="Auto-generated">
+                          </div>
+                        </div>
+
+                        <h4 class="text-md font-medium text-slate-800 mb-4">Signature of Medical Officer</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label class="block text-sm font-medium text-slate-700">Full Name</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-slate-700">Qualifications</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-slate-700">SLMC Registration No.</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-slate-700">Designation</label>
+                            <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- INTERACTIVE ANNOTATION CANVAS & DIGITAL SIGNATURES -->
+                  <div class="space-y-6">
+                    <!-- 1. DIGITAL BODY DIAGRAM WRAPPER -->
+                    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-slate-800">Body Diagram Annotations</h3>
+                        <button type="button" id="clearBodyCanvasBtn" class="text-sm text-red-600 hover:text-red-700 font-medium px-3 py-1 border border-red-200 rounded hover:bg-red-50 transition-colors">Clear Markings</button>
+                      </div>
+                      <div class="p-6 flex justify-center bg-slate-100">
+                        <div class="relative inline-block border border-slate-300 bg-white rounded-md shadow-inner" style="width: 400px; height: 500px;">
+                          <!-- SVG Body Silhouette Placeholder -->
+                          <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-50" viewBox="0 0 400 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g stroke="#94a3b8" stroke-width="2">
+                              <!-- Front -->
+                              <circle cx="100" cy="80" r="25"/>
+                              <path d="M70 120 L130 120 L140 220 L115 220 L115 150 L85 150 L85 220 L60 220 Z"/>
+                              <path d="M80 220 L80 350 L100 350 L100 220"/>
+                              <path d="M120 220 L120 350 L100 350 L100 220"/>
+                              <path d="M60 120 L40 200 M140 120 L160 200"/>
+                              <text x="100" y="400" text-anchor="middle" fill="#94a3b8" stroke="none" font-size="12">FRONT</text>
+
+                              <!-- Back -->
+                              <circle cx="300" cy="80" r="25"/>
+                              <path d="M270 120 L330 120 L340 220 L315 220 L315 150 L285 150 L285 220 L260 220 Z"/>
+                              <path d="M280 220 L280 350 L300 350 L300 220"/>
+                              <path d="M320 220 L320 350 L300 350 L300 220"/>
+                              <path d="M260 120 L240 200 M340 120 L360 200"/>
+                              <text x="300" y="400" text-anchor="middle" fill="#94a3b8" stroke="none" font-size="12">BACK</text>
+                            </g>
+                          </svg>
+                          <!-- Interactive Canvas overlay -->
+                          <canvas id="bodyCanvas" width="400" height="500" class="absolute inset-0 z-10 cursor-crosshair touch-none"></canvas>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 2. MEDICAL OFFICER DIGITAL SIGNATURE PAD -->
+                    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden max-w-md">
+                      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                        <h3 class="text-sm font-semibold text-slate-800">Draw Official Signature</h3>
+                        <button type="button" id="clearSignatureBtn" class="text-xs text-slate-500 hover:text-slate-700 font-medium underline">Reset Pad</button>
+                      </div>
+                      <div class="p-4 bg-slate-50 flex justify-center">
+                        <div class="relative border-2 border-dashed border-slate-300 bg-white rounded-md overflow-hidden" style="width: 100%; height: 150px;">
+                          <!-- The actual canvas dimensions need to be set in JS to match element size, or hardcoded for a specific resolution -->
+                          <canvas id="signatureCanvas" width="400" height="150" class="absolute inset-0 w-full h-full cursor-crosshair touch-none"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-end pt-5 space-x-3">
+                    <button type="button" class="generatePdfBtn inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 transition-colors">
+                      <i data-feather="file-text" class="mr-2 h-4 w-4"></i> Generate PDF Report
+                    </button>
+                    <button type="button" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500">Save MLEF Record</button>
+                  </div>
+                </div>
+
+                <!-- Tab 2: Autopsy Case (PMR) -->
+                <div id="tab-pmr" class="tab-pane space-y-6">
+                  <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                    <div class="sm:col-span-3">
+                      <label class="block text-sm font-medium text-slate-700">PM Number</label>
+                      <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                    </div>
+                    <div class="sm:col-span-3">
+                      <label class="block text-sm font-medium text-slate-700">Date of Autopsy</label>
+                      <input type="date" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                    </div>
+                    <div class="sm:col-span-4">
+                      <label class="block text-sm font-medium text-slate-700">Deceased Full Name</label>
+                      <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                    </div>
+                    <div class="sm:col-span-2">
+                      <label class="block text-sm font-medium text-slate-700">Age</label>
+                      <input type="number" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                    </div>
+                    <div class="sm:col-span-6">
+                      <label class="block text-sm font-medium text-slate-700">Suspected Cause of Death</label>
+                      <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                    </div>
+                    <div class="sm:col-span-3">
+                      <label class="block text-sm font-medium text-slate-700">External Examination</label>
+                      <textarea rows="4" class="mt-1 shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border border-slate-300 rounded-md"></textarea>
+                    </div>
+                    <div class="sm:col-span-3">
+                      <label class="block text-sm font-medium text-slate-700">Internal Examination</label>
+                      <textarea rows="4" class="mt-1 shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border border-slate-300 rounded-md"></textarea>
+                    </div>
+                    <div class="sm:col-span-6 border-t border-slate-200 mt-2 pt-4">
+                      <h4 class="text-md font-medium text-navy-800 mb-4">Samples for Toxicology / Lab</h4>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="flex items-center"><input type="checkbox" class="h-4 w-4 text-primary-600 border-slate-300 rounded"><label class="ml-2 text-sm text-slate-700">Blood</label></div>
+                        <div class="flex items-center"><input type="checkbox" class="h-4 w-4 text-primary-600 border-slate-300 rounded"><label class="ml-2 text-sm text-slate-700">Urine</label></div>
+                        <div class="flex items-center"><input type="checkbox" class="h-4 w-4 text-primary-600 border-slate-300 rounded"><label class="ml-2 text-sm text-slate-700">Stomach Contents</label></div>
+                        <div class="flex items-center"><input type="checkbox" class="h-4 w-4 text-primary-600 border-slate-300 rounded"><label class="ml-2 text-sm text-slate-700">Liver/Kidney</label></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-end pt-5 border-t border-slate-200 space-x-3">
+                    <button type="button" class="generatePdfBtn inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 transition-colors">
+                      <i data-feather="file-text" class="mr-2 h-4 w-4"></i> Generate PDF Report
+                    </button>
+                    <button type="button" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500">Save PMR Record</button>
+                  </div>
+                </div>
+
+                <!-- Tab 3: Court Receipt Logging -->
+                <div id="tab-court-receipt" class="tab-pane space-y-6">
+                  <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                    <div class="sm:col-span-2">
+                      <label class="block text-sm font-medium text-slate-700">MLEF / PM Number Reference</label>
+                      <input type="text" placeholder="e.g. MLEF-4829" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700">Court Name</label>
+                      <input type="text" placeholder="e.g. High Court, Colombo" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700">Court Case Number</label>
+                      <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                    </div>
+                    <div class="sm:col-span-2">
+                      <label class="block text-sm font-medium text-slate-700">Date of Dispatch</label>
+                      <input type="date" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                    </div>
+                    <div class="sm:col-span-2 mt-2 pt-4 border-t border-slate-200">
+                      <label class="block text-sm font-medium text-slate-700 mb-2">Upload Signed Court Receipt</label>
+                      <div class="flex items-center justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-md bg-slate-50">
+                        <div class="space-y-1 text-center">
+                          <i data-feather="upload" class="mx-auto h-12 w-12 text-slate-400"></i>
+                          <div class="flex text-sm text-slate-600 justify-center mt-2">
+                            <label for="receipt-file" class="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500">
+                              <span>Upload Document</span>
+                              <input id="receipt-file" name="receipt-file" type="file" class="sr-only">
+                            </label>
+                          </div>
+                          <p class="text-xs text-slate-500 mt-1">PDF or Image up to 5MB</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-end pt-5 border-t border-slate-200">
+                    <button type="button" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500">Log Receipt</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          <!-- 4. COURT TRACKING VIEW -->
+          <section id="view-court" class="view-section">
+            <div class="max-w-3xl mx-auto bg-white shadow-sm rounded-lg border border-slate-200 p-8">
+              <div class="border-b border-slate-200 pb-5 mb-6">
+                <h3 class="text-lg leading-6 font-medium text-navy-900">Court Dispatch & Summons Tracking</h3>
+                <p class="mt-1 text-sm text-slate-500">Record court summons details and log finalized report dispatch.</p>
+              </div>
+
+              <form class="space-y-6">
+                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                  <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-slate-700">MLEF/PM Number Reference</label>
+                    <input type="text" placeholder="e.g. MLEF-4829" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700">Court Name</label>
+                    <input type="text" placeholder="e.g. High Court, Colombo" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700">Court Case Number</label>
+                    <input type="text" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-slate-700">Date of Trial</label>
+                    <input type="date" class="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-slate-300 rounded-md">
+                  </div>
+                  
+                  <div class="sm:col-span-2 mt-4 pt-4 border-t border-slate-200">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Certificate of Receipt (Court Registry)</label>
+                    <div class="flex items-center justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-md bg-slate-50">
+                      <div class="space-y-1 text-center">
+                        <i data-feather="file" class="mx-auto h-12 w-12 text-slate-400"></i>
+                        <div class="flex text-sm text-slate-600 justify-center">
+                          <label for="receipt-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500">
+                            <span>Upload Receipt</span>
+                            <input id="receipt-upload" name="receipt-upload" type="file" class="sr-only">
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex justify-end pt-5">
+                  <button type="button" class="bg-white py-2 px-4 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none mr-3">Cancel</button>
+                  <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">Save Record</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- 5. DISPATCHED REPORTS VIEW -->
+          <section id="view-dispatched" class="view-section space-y-6">
+            <div class="flex justify-between items-center">
+              <p class="text-slate-600">View and download completed, officially dispatched case reports.</p>
+            </div>
+
+            <!-- Dispatched Reports Table -->
+            <div class="bg-white shadow-sm rounded-lg border border-slate-200 overflow-hidden">
+              <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Report ID</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Case Number</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dispatch Date</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Recipient</th>
+                    <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-slate-200">
+                  <tr class="hover:bg-slate-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-navy-900">REP-2023-0891</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">MLEF-4820</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">2023-10-24</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">High Court, Colombo</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i data-feather="eye" class="mr-1.5 h-3.5 w-3.5"></i>
+                        View Report
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-slate-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-navy-900">REP-2023-0875</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">PM-2023-098</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">2023-10-22</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Magistrate Court, Kandy</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i data-feather="eye" class="mr-1.5 h-3.5 w-3.5"></i>
+                        View Report
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </div>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
